@@ -38,7 +38,7 @@ def complex_reply():
     # auto reply msg
     @itchat.msg_auto_reply
     def auto_reply():
-        print time.time()
+        #print time.time()
         return True
 
     itchat.run()

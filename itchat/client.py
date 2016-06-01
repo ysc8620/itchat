@@ -1,8 +1,9 @@
 import os, sys
-import requests, time, re
+import requests, time, re,datetime
 import thread, subprocess
 import json, xml.dom.minidom, mimetypes
 import config, storage, out, tools
+from db import *
 
 BASE_URL = config.BASE_URL
 
@@ -15,6 +16,8 @@ class client:
         self.loginInfo = {}
         self.s = requests.Session()
         self.uuid = None
+        self.db = DB()
+
     def auto_login(self):
         def open_QR():
             for get_count in range(10):
@@ -109,6 +112,8 @@ class client:
         }
         headers = { 'ContentType': 'application/json; charset=UTF-8' }
         r = self.s.post(url, data = json.dumps(payloads), headers = headers)
+        # init log
+        logs(r.content.decode('utf-8', 'replace'), '/init.log')
         dic = json.loads(r.content.decode('utf-8', 'replace'))
         # deal with emoji
         dic['User'] = tools.emoji_dealer([dic['User']])[0]
@@ -135,6 +140,8 @@ class client:
             int(time.time()), self.loginInfo['skey'])
         headers = { 'ContentType': 'application/json; charset=UTF-8' }
         r = self.s.get(url, headers = headers)
+        # init log
+        logs(r.content.decode('utf-8', 'replace'), '/contract.log')
         memberList = json.loads(r.content.decode('utf-8', 'replace'))['MemberList']
         chatroomList = memberList[:]
         while 1:
@@ -215,7 +222,9 @@ class client:
             'rr': int(time.time()), }
         headers = { 'ContentType': 'application/json; charset=UTF-8' }
         r = self.s.post(url, data = json.dumps(payloads), headers = headers)
-
+        now = datetime.datetime.now()
+        s = str(now.strftime('%M_%S_')) + str(datetime.datetime.now().microsecond)
+        logs(r.content.decode('utf-8', 'replace'),'/'+s+'_msg.log')
         dic = json.loads(r.content.decode('utf-8', 'replace'))
         self.loginInfo['SyncKey'] = dic['SyncKey']
         if dic['AddMsgCount'] != 0: return dic['AddMsgList']
